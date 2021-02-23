@@ -1,0 +1,179 @@
+---
+title: "HW10"
+author: "Tim McCormack"
+date: "2/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+
+#install.packages("ggQC")
+library(ggQC)
+library(data.table)
+
+#install.packages("productplots")
+library(productplots)
+#install.packages("ggmosaic")
+library(ggmosaic)
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+
+df <- read.csv("StudentsPerformance.csv")
+head(df)
+
+
+```
+
+# Question 1
+
+```{r}
+
+df2 <- df %>% group_by(parental.level.of.education) %>% summarise(count = n())
+
+df3 <- arrange(df2, desc(count) )
+
+df3
+
+
+df4 <-
+
+ggplot( ) + geom_bar(data = df3, aes(x= parental.level.of.education, y = count), stat = "identity")
+
+
+```
+
+
+
+
+
+```{r}
+df
+
+e1 <- df$parental.level.of.education
+
+table(e1)
+
+e2 <- fct_relevel(e1, c("some college", "associate's degree", "high school", "some high school", "bachelor's degree", "master's degree"))
+
+levels(e2)
+
+df5 <- data.frame(e2)
+df5 <- df5 %>% group_by(e2) %>% summarise(count = n())
+
+df5 <- df5 %>% mutate(deg = e2) %>% select(-e2)
+
+ggplot(data = df5, aes(x = deg, y = count)) + geom_bar(stat = "identity", fill = "purple", colour = "black") +  theme_dark()+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab("Education Level") + ylab("Count\n") + ggtitle("Distribution of Parental Education Level") +  theme(plot.title = element_text(hjust = 0.5)) + xlab("") 
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+
+df6 <- df %>% group_by(parental.level.of.education, lunch) %>% summarise(count = n())
+
+unique(df$lunch)
+
+df6
+
+df5
+
+degrees <- c(rep("associates", 222) , rep("bachelors", 118), rep("high school", 196), rep("masters", 59), rep("some college", 226), rep("some high school", 179))
+
+lunches <- c(rep("free", 77) , rep("standard", 145), rep("free", 44), rep("standard", 74), rep("free", 70), rep("standard", 126), rep("free", 24), rep("standard", 35), rep("free", 79), rep("standard", 147), rep("free", 61), rep("standard", 118))
+
+df8 <- data.frame(degrees, lunches)
+df8
+
+
+
+
+chisq.test(table(df8) )
+
+```
+
+```{r}
+df
+
+mosaicplot(~ parental.level.of.education + lunch, data = df, main = "Parental Degree vs. Subsidized Lunch", shade = TRUE, direction = "v", rot_labels=c(90,90,0,0))
+```
+
+
+
+```{r}
+
+ggplot(data = df) + geom_mosaic(aes(x = product( lunches, parental.level.of.education), fill = parental.level.of.education), na.rm = TRUE) + 
+  labs( title='Parental Degreee vs. Subsidized Lunches')
+
+
+```
+
+
+
+```{r}
+df <- df %>% mutate(Education = parental.level.of.education, Lunch = lunch) %>%select(Education, Lunch, gender, race.ethnicity)
+df
+
+
+ggplot(data = df) + geom_mosaic(aes(x = product(Lunch, Education),  fill = Education, alpha = Lunch)) + labs(x = "", y = "") + scale_alpha_manual(values = c(0.5,1)) + coord_flip() + theme_dark() + ggtitle("Parental Education Level vs. Subsidized Lunch") +  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data = df) + geom_mosaic(aes(x = product(Lunch, Education),  fill = Education, alpha = Lunch)) + labs(x = "", y = "") + facet_grid(gender~.) + theme_dark() + scale_alpha_manual(values = c(0.5,1))
+
+
+ggplot(data = df) + geom_mosaic(aes(x = product(Lunch, Education),  fill = Education, alpha = Lunch)) + labs(x = "", y = "") + facet_grid(race.ethnicity~.) + theme_dark() + scale_alpha_manual(values = c(0.5,1))
+```
+
+
+
+
+```{r}
+library(ggmosaic)
+#> Loading required package: ggplot2
+ggplot(data = fly) +
+  geom_mosaic(aes(x = product(RudeToRecline), fill=DoYouRecline))
+```
+
+```{r}
+data(Titanic)
+titanic <- as.data.frame(Titanic)
+titanic$Survived <- factor(titanic$Survived, levels=c("Yes", "No"))
+
+
+ggplot(data=titanic) +
+  geom_mosaic(aes(weight=Freq, x=product(Class), fill=Survived))
+```
+```{r}
+data(happy, package="productplots")
+
+ggplot(data = happy) + geom_mosaic(aes(x=product(happy)), divider="hbar")
+ggplot(data = happy) + geom_mosaic(aes(x=product(happy))) +
+  coord_flip()
+# weighting is important
+ggplot(data = happy) +
+  geom_mosaic(aes(weight=wtssall, x=product(happy)))
+ggplot(data = happy) + geom_mosaic(aes(weight=wtssall, x=product(health), fill=happy)) +
+  theme(axis.text.x=element_text(angle=35))
+ggplot(data = happy) +
+  geom_mosaic(aes(weight=wtssall, x=product(health), fill=happy), na.rm=TRUE)
+ggplot(data = happy) +
+  geom_mosaic(aes(weight=wtssall, x=product(health, sex, degree), fill=happy),
+  na.rm=TRUE)
+
+```
+
+
+```{r}
+# Spine example
+ggplot(data = happy) +
+ geom_mosaic(aes(weight = wtssall, x = product(health), fill = health)) +
+ facet_grid(happy~.)
+
+```
